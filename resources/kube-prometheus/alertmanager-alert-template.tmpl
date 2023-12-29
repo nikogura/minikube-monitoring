@@ -1,0 +1,94 @@
+{{ define "__alert_silence_link" -}}
+   {{ .ExternalURL }}/#/silences/new?filter=%7B
+   {{- range .CommonLabels.SortedPairs -}}
+      {{- if ne .Name "alertname" -}}
+      {{- .Name }}%3D"{{- .Value -}}"%2C%20
+      {{- end -}}
+   {{- end -}}
+   alertname%3D"{{ .CommonLabels.alertname }}"%7D
+{{- end }}
+
+{{ define "__alert_severity_prefix" -}}
+   {{ if ne .Status "firing" -}}
+   :greenlight:
+   {{- else if eq .CommonLabels.severity "critical" -}}
+   :fire:
+   {{- else if eq .CommonLabels.severity "warning" -}}
+   :warning:
+   {{- else -}}
+   :question:
+   {{- end }}
+{{- end }}
+
+{{ define "__alert_severity_prefix_title" -}}
+   {{ if ne .Status "firing" -}}
+   :greenlight:
+   {{- else if eq (index .Alerts 0).Labels.severity "critical" -}}
+   :fire:
+   {{- else if eq (index .Alerts 0).Labels.severity "warning" -}}
+   :warning:
+   {{- else if eq (index .Alerts 0).Labels.severity "info" -}}
+   :information_source:
+   {{- else -}}
+   :question:
+   {{- end }}
+{{- end }}
+
+{{ define "slack.monzo.title" -}}
+   [{{ .Status | toUpper -}}
+   {{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{- end -}}
+  ] {{ template "__alert_severity_prefix_title" . }} {{ .CommonLabels.alertname }}
+{{- end }}
+
+{{ define "slack.monzo.color" -}}
+    {{ if eq .Status "firing" -}}
+      {{ if eq .CommonLabels.severity "warning" -}}
+      warning
+      {{- else if eq .CommonLabels.severity "critical" -}}
+      danger
+      {{- else -}}
+       #439FE0
+      {{- end -}}
+    {{ else -}}
+    good
+    {{- end }}
+{{- end }}
+
+{{ define "slack.monzo.icon_emoji" }}:prometheus:{{ end }}
+
+{{ define "slack.monzo.text" -}}
+   {{ range .Alerts }}
+      {{- if .Annotations.message }}
+      {{ .Annotations.message }}
+      {{- end }}
+      {{- if .Annotations.description }}
+      {{ .Annotations.description }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+
+{{ define "__get_channel_for_code_owner" -}}
+   {{- if eq . "platform-team" -}}
+   platform-alerts
+   {{- else if eq . "security-team" -}}
+   security-alerts
+   {{- else -}}
+   monitoring-no-owner
+   {{- end -}}
+{{- end }}
+
+{{ define "slack.monzo.code_owner_channel" -}}
+   {{- if .CommonLabels.code_owner }}
+   {{ template "__get_channel_for_code_owner" .CommonLabels.code_owner }}
+   {{- else -}}
+   monitoring
+   {{- end }}
+{{- end }}
+
+{{ define "slack.monzo.link_button_text" -}}
+   {{- if .CommonAnnotations.link_text -}}
+   {{- .CommonAnnotations.link_text -}}
+   {{- else -}}
+   Link
+   {{- end }} :link:
+{{- end }}

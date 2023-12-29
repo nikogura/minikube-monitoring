@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: default
+
+resources:
+  - gateway/configmap-gateway.yaml
+  - gateway/deployment-gateway.yaml
+  - gateway/service-gateway.yaml
+
+  - loki-canary/daemonset.yaml
+  - loki-canary/service.yaml
+  - loki-canary/serviceaccount.yaml
+
+  - single-binary/service.yaml
+  - single-binary/service-headless.yaml
+  - single-binary/statefulset.yaml
+
+  - config.yaml
+  - runtime-configmap.yaml
+  - service-memberlist.yaml
+  - serviceaccount.yaml
+
